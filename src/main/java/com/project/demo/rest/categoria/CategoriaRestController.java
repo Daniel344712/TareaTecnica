@@ -8,6 +8,7 @@ import com.project.demo.logic.entity.http.GlobalResponseHandler;
 import com.project.demo.logic.entity.http.Meta;
 import com.project.demo.logic.entity.order.Order;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -60,19 +61,31 @@ public class CategoriaRestController {
 
     }
 
+
+
     @PutMapping("{categoriaId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<?> updateCategoria(@PathVariable Long categoriaId, @RequestBody Categoria categoria, HttpServletRequest request) {
-        Optional<Categoria> foundCategoria = categoriaRepository.findById(categoriaId);
-        if (foundCategoria.isPresent()) {
-            categoria.setId(categoriaId);
-            categoria.setProducto(foundCategoria.get().getProducto());
-            categoriaRepository.save(categoria);
-            return new GlobalResponseHandler().handleResponse("Categoria updated successfully", categoria, HttpStatus.OK, request);
+    public ResponseEntity<?> updateCategoria(
+            @PathVariable Long categoriaId,
+            @RequestBody Categoria categoria,
+            HttpServletRequest request) {
+
+        Optional<Categoria> foundCategoriaOpt = categoriaRepository.findById(categoriaId);
+        if (foundCategoriaOpt.isPresent()) {
+            Categoria foundCategoria = foundCategoriaOpt.get();
+            foundCategoria.setNombre(categoria.getNombre());
+            foundCategoria.setDescripcion(categoria.getDescripcion());
+            categoriaRepository.save(foundCategoria);
+            return new GlobalResponseHandler()
+                    .handleResponse("Categoria updated successfully", foundCategoria, HttpStatus.OK, request);
         } else {
-            return new GlobalResponseHandler().handleResponse("Categoria update failed: " + categoriaId + " not found", HttpStatus.NOT_FOUND, request);
+            return new GlobalResponseHandler()
+                    .handleResponse("Categoria not found " + categoriaId, HttpStatus.NOT_FOUND, request);
         }
     }
+
+
+
 
 
     @PatchMapping("{categoriaId}")
@@ -94,7 +107,7 @@ public class CategoriaRestController {
         Optional<Categoria> foundCategoria = categoriaRepository.findById(categoriaId);
 
         if (foundCategoria.isPresent()) {
-            categoriaRepository.deleteById(foundCategoria.get().getId());
+            categoriaRepository.delete(foundCategoria.get());
             return new GlobalResponseHandler().handleResponse("Categoria deleted successfully", HttpStatus.OK, request);
         } else {
             return new GlobalResponseHandler().handleResponse("Categoria not found" + categoriaId, HttpStatus.NOT_FOUND, request );

@@ -46,13 +46,14 @@ public class ProductoRestController {
                 productoPage.getContent(), HttpStatus.OK, meta);
     }
 
-    @PostMapping("/categoria/{categoriaId}")
+    @PostMapping("{categoriaId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<?> addProductoToCategoria(@PathVariable Long categoriaId, @RequestBody Producto producto, HttpServletRequest request) {
         Optional<Categoria> foundCategoria = categoriaRepository.findById(categoriaId);
         if (foundCategoria.isPresent()) {
             producto.setCategoria(foundCategoria.get());
             Producto saveProducto =  productoRepository.save(producto);
+
             return new GlobalResponseHandler().handleResponse("Product created successfully", saveProducto, HttpStatus.CREATED, request);
         }else{
             return new GlobalResponseHandler().handleResponse("Categoria Id" + categoriaId + "not found", HttpStatus.NOT_FOUND, request);
@@ -64,14 +65,23 @@ public class ProductoRestController {
     public ResponseEntity<?> updateProducto(@PathVariable Long productoId, @RequestBody Producto producto, HttpServletRequest request) {
         Optional<Producto> foundProducto = productoRepository.findById(productoId);
         if (foundProducto.isPresent()) {
-            producto.setId(foundProducto.get().getId());
-            producto.setCategoria(foundProducto.get().getCategoria());
-            productoRepository.save(producto);
+            if(producto.getCategoria() != null && producto.getCategoria().getId() != null) {
+                    Optional<Categoria> foundCategoria = categoriaRepository.findById(producto.getCategoria().getId());
+                if (foundCategoria.isPresent()) {
+                    producto.setCategoria(foundCategoria.get());
+                    producto.setId(foundProducto.get().getId());
+                    productoRepository.save(producto);
+                }
+                else{
+                    return new GlobalResponseHandler().handleResponse("Categoria not found",  HttpStatus.NOT_FOUND, request);
+                }
+            }
             return new GlobalResponseHandler().handleResponse("Product updated successfully", producto, HttpStatus.OK, request);
         }else{
             return new GlobalResponseHandler().handleResponse("Product id not found" + productoId, HttpStatus.NOT_FOUND, request);
         }
     }
+
 
     @PatchMapping("/{productoId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")

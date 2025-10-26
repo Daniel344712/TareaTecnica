@@ -1,5 +1,6 @@
 package com.project.demo.logic.entity.Categoria;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.project.demo.logic.entity.Producto.Producto;
 import com.project.demo.logic.entity.order.Order;
 import jakarta.persistence.*;
@@ -18,7 +19,9 @@ public class Categoria {
     private String descripcion;
 
 
-    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+
+    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties("categoria")
     private List<Producto> producto;
 
     public Long getId() {

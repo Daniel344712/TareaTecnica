@@ -1,6 +1,7 @@
 package com.project.demo.logic.entity.Producto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.project.demo.logic.entity.Categoria.Categoria;
 import jakarta.persistence.*;
 
@@ -18,9 +19,10 @@ private Double precio;
 private Integer stock;
 
 
-    @JsonIgnore
+
     @ManyToOne
     @JoinColumn(name =  "categoria_id")
+    @JsonIgnoreProperties("producto")
     private Categoria categoria;
 
     public Long getId() {
